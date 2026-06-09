@@ -7,9 +7,16 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Event, Thread
 
 import httpx
+from dotenv import load_dotenv
 
-CLIENT_ID = os.environ["SPOTIFY_CLIENT_ID"]
-CLIENT_SECRET = os.environ["SPOTIFY_CLIENT_SECRET"]
+load_dotenv()  # loads .env if it exists, does nothing if it doesn't
+
+CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID") or os.getenv("SPOTIFY_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET") or os.getenv("SPOTIFY_CLIENT_SECRET")
+
+if not CLIENT_ID or not CLIENT_SECRET:
+    raise RuntimeError("SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET must be set in .env or environment")
+                       
 REDIRECT_URI = "http://127.0.0.1:8888/callback"
 SCOPES = " ".join([
     "user-read-playback-state",
