@@ -32,8 +32,29 @@ def search_tracks(query: str) -> str:
 
 def play_track(uri: str) -> str:
     """Play a track by Spotify URI (e.g. spotify:track:4uLU6hMCjMI75M1A2tKUQC)."""
-    spotify("/me/player/play", method="PUT", body={"uris": [uri]})
-    return "▶ Playing track."
+    # First try the normal path: Spotify will start/resume on the active device.
+    try:
+        spotify("/me/player/play", method="PUT", body={"uris": [uri]})
+        return "▶ Playing track."
+    except Exception:
+        # If there is no active device, pick an available one and transfer playback.
+        devices_resp = spotify("/me/player/devices", method="GET")
+        devices = devices_resp.get("devices", []) if isinstance(devices_resp, dict) else []
+
+        # Prefer the first controllable device with an ID.
+        device_id = next((d.get("id") for d in devices if d.get("id")), None)
+        device_name = next((d.get("name") for d in devices if d.get("id")), None)
+
+        if not device_id:
+            raise RuntimeError(
+                "No available Spotify device found. Open Spotify on a device first."
+            )
+
+        # Transfer playback to that device, then start the track there.
+        spotify("/me/player", method="PUT", body={"device_ids": [device_id], "play": False})
+        spotify(f"/me/player/play?device_id={device_id}", method="PUT", body={"uris": [uri]})
+
+        return f"▶ Playing track on {device_name or 'Spotify device'}."
 
 def main():
     run_oauth_flow()
