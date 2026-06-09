@@ -100,7 +100,7 @@ def run_oauth_flow() -> None:
 def get_valid_token() -> str:
     """Return a valid access token, refreshing if needed."""
     if not _tokens["access_token"]:
-        raise RuntimeError("Not authenticated. Restart the server to run the OAuth flow.")
+        run_oauth_flow()
     if time.time() > _tokens["expires_at"] - 30:
         _refresh_access_token()
     return _tokens["access_token"]
