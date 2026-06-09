@@ -2,6 +2,7 @@ import json
 import urllib.parse
 
 import httpx
+import mcp
 
 from auth import get_valid_token, run_oauth_flow
 
@@ -37,3 +38,6 @@ def play_track(uri: str) -> str:
 
 def main():
     run_oauth_flow()
+
+if __name__ == "__main__":
+    main()
